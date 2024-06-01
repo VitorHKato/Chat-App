@@ -45,7 +45,7 @@ export default function App() {
             <Route path="/" element={
                 <form onSubmit={handleSubmit}>
                     <div className="container">
-                        <Input text={"Username"} value={username} onChange={handleUsernameChange}/>
+                        <Input text={"Username"} value={username} onChange={handleUsernameChange} maxLenght="20"/>
                         <Input text={"Group"} value={group} onChange={handleGroupChange}/>
                         <Sender style={{paddingTop: 50}}/>
                     </div>

@@ -6,19 +6,23 @@ export default function Group({ data }) {
     const [messages, setMessages] = useState([]);
     const [userMessages, setUserMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
-    const [username, setUsername] = useState('');
     const groupName = data.group;
+    const username = data.username;
 
     useEffect(() => {
         fetchMessages();
     }, [groupName]);
 
+    const isUserMessage = (id) => {
+        return userMessages.some(userMsg => userMsg.Id === id);
+    }
+
     const fetchMessages = async () => {
         try {
-            const res = await fetch(`https://httpbin.org/get?group=${groupName}`);
-            const data = await res.json();
-            setMessages(data.messages);
-            setUserMessages(data.messages.filter(msg => msg.username === username));
+            const res = await fetch(`http://localhost:55667/messages?roomId=${groupName}`);
+            const response = await res.json();
+            setMessages(response);
+            setUserMessages(response.filter(msg => msg.SenderId === username));
         } catch (error) {
             console.error('Error fetching messages: ', error);
         }
@@ -26,21 +30,37 @@ export default function Group({ data }) {
 
     const handleSendMessage = async () => {
         try {
-            const rest = await fetch('https://httpbin.org/post', {
+            await fetch('http://localhost:55667/newMessage', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({group: groupName, username, message: newMessage}),
+                body: JSON.stringify({SenderId: username, RoomId: groupName, Content: newMessage}),
             });
+            await fetchMessages();
         } catch (error) {
             console.error('Error sending message: ', error);
         }
     };
 
+    const handleEditMessage = async (messageId) => {
+        try {
+            await fetch(`http://localhost:55667/edit?messageId=${messageId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({Content: newMessage}),
+            });
+            await fetchMessages();
+        } catch (error) {
+            console.error('Error deleting message: ', error);
+        }
+    };
+
     const handleDeleteMessage = async (messageId) => {
         try {
-            await fetch(`https://httpbin.org/delete/${messageId}`, {
+            await fetch(`http://localhost:55667/delete?messageId=${messageId}`, {
                 method: 'DELETE',
             });
             await fetchMessages();
@@ -54,26 +74,27 @@ export default function Group({ data }) {
             <div className="group-container">
                 <h1>{groupName}</h1>
                 <div className="messages-container">
-                    <div className="messages-left">
-                        {messages && messages.map((msg) => (
-                            <div className="message-box" key={msg.id}>
-                                <p><strong>{msg.username}</strong>: {msg.message}</p>
+                    {messages && messages.map((msg) => (
+                        <div className={`message-box ${isUserMessage(msg.Id) ? 'userMessage' : ''}`}
+                             key={msg.id}
+                         >
+                            <div className="message-content">
+                                <p><strong>{msg.SenderId}</strong>: {msg.Content}</p>
                             </div>
-                        ))}
-                    </div>
-                    <div className="messages-right">
-                        {userMessages && userMessages.map((msg => (
-                            <div className="message-box" key={msg.id}>
-                                <p>{msg.message}</p>
-                                <button onClick={() => handleDeleteMessage(msg.id)}>Delete</button>
-                            </div>
-                        )))}
-                    </div>
+                        {isUserMessage(msg.Id) && (
+                        <div className="message-buttons">
+                            <button onClick={() => handleEditMessage(msg.id)}>Edit</button>
+                            <button onClick={() => handleDeleteMessage(msg.id)}>Delete</button>
+                        </div>
+                        )}
+                        </div>
+                    ))}
                 </div>
                 <div className="new-message-container">
                     <Input
                         type="text"
                         value={newMessage}
+                        maxLenght="200"
                         onChange={(e) => setNewMessage(e.target.value)}
                         placeholder="Type your message"
                     />
