@@ -8,6 +8,8 @@ export default function Group({ data }) {
     const [newMessage, setNewMessage] = useState('');
     const groupName = data.group;
     const username = data.username;
+    const baseUrl = 'http://140.238.182.69:55667/'
+    //const baseUrl = 'http://localhost:55667/'
 
     useEffect(() => {
         fetchMessages();
@@ -19,7 +21,7 @@ export default function Group({ data }) {
 
     const fetchMessages = async () => {
         try {
-            const res = await fetch(`http://localhost:55667/messages/${groupName}`);
+            const res = await fetch(`${baseUrl}messages/${groupName}`);
             const response = await res.json();
             setMessages(response);
             setUserMessages(response.filter(msg => msg.SenderId === username));
@@ -30,7 +32,7 @@ export default function Group({ data }) {
 
     const handleSendMessage = async () => {
         try {
-            await fetch('http://localhost:55667/newMessage', {
+            await fetch(`${baseUrl}newMessage`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -45,7 +47,7 @@ export default function Group({ data }) {
 
     const handleEditMessage = async (messageId) => {
         try {
-            await fetch(`http://localhost:55667/updateMessage/${messageId}`, {
+            await fetch(`${baseUrl}updateMessage/${messageId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -60,7 +62,7 @@ export default function Group({ data }) {
 
     const handleDeleteMessage = async (messageId) => {
         try {
-            await fetch(`http://localhost:55667/delete/${messageId}`, {
+            await fetch(`${baseUrl}delete/${messageId}`, {
                 method: 'DELETE',
             });
             await fetchMessages();

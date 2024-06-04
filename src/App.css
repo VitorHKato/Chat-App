@@ -111,13 +111,10 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  grid-column-start: 1;
-  justify-self: start;
 }
 
 .message-box-userMessage {
-  grid-column-start: 2;
-  justify-self: end;
+  align-self: flex-end;
 }
 
 .new-message-container {

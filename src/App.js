@@ -8,7 +8,6 @@ import Group from "./Group";
 export default function App() {
     const [username, setUsername] = useState('');
     const [group, setGroup] = useState('');
-    const [response, setResponse] = useState(null);
     const navigate = useNavigate();
 
     const handleUsernameChange = (e) => {
@@ -24,15 +23,6 @@ export default function App() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const res = await fetch('https://httpbin.org/post', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(data),
-                });
-            const result = await res.json();
-            setResponse(result);
             navigate(`/${group}`);
         } catch (error) {
             console.error('Error: ', error);
