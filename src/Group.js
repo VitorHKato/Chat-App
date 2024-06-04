@@ -19,7 +19,7 @@ export default function Group({ data }) {
 
     const fetchMessages = async () => {
         try {
-            const res = await fetch(`http://localhost:55667/messages?roomId=${groupName}`);
+            const res = await fetch(`http://localhost:55667/messages/${groupName}`);
             const response = await res.json();
             setMessages(response);
             setUserMessages(response.filter(msg => msg.SenderId === username));
@@ -35,7 +35,7 @@ export default function Group({ data }) {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({SenderId: username, RoomId: groupName, Content: newMessage}),
+                body: JSON.stringify({senderid: username, roomid: groupName, content: newMessage}),
             });
             await fetchMessages();
         } catch (error) {
@@ -45,7 +45,7 @@ export default function Group({ data }) {
 
     const handleEditMessage = async (messageId) => {
         try {
-            await fetch(`http://localhost:55667/edit?messageId=${messageId}`, {
+            await fetch(`http://localhost:55667/updateMessage/${messageId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -60,7 +60,7 @@ export default function Group({ data }) {
 
     const handleDeleteMessage = async (messageId) => {
         try {
-            await fetch(`http://localhost:55667/delete?messageId=${messageId}`, {
+            await fetch(`http://localhost:55667/delete/${messageId}`, {
                 method: 'DELETE',
             });
             await fetchMessages();
@@ -83,8 +83,8 @@ export default function Group({ data }) {
                             </div>
                         {isUserMessage(msg.Id) && (
                         <div className="message-buttons">
-                            <button onClick={() => handleEditMessage(msg.id)}>Edit</button>
-                            <button onClick={() => handleDeleteMessage(msg.id)}>Delete</button>
+                            <button onClick={() => handleEditMessage(msg.Id)}>Edit</button>
+                            <button onClick={() => handleDeleteMessage(msg.Id)}>Delete</button>
                         </div>
                         )}
                         </div>
