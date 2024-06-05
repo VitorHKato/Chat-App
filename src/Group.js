@@ -18,6 +18,11 @@ export default function Group({ data }) {
     const [privateKey, setPrivateKey] = useState('');
     const [serverPublicKey, setServerPublicKey] = useState('');
 
+    const [selectedFile, setSelectedFile] = useState(null);
+    const handleFileChange = (event) => {
+        setSelectedFile(event.target.files[0]);
+    };
+
     //const generateKeys = () => {
     //    const jsEncrypt = new JSEncrypt({default_key_size: 2048})
     //    setPrivateKey(jsEncrypt.getPrivateKey());
@@ -62,7 +67,7 @@ NQIDAQAB
     useEffect(() => {
         //generateKeys();
         //fetchServerPublicKey();
-        setInterval(fetchMessages, 5000);
+        //setInterval(fetchMessages, 5000);
     }, [groupName]);
 
     const fetchMessages = async () => {
@@ -80,8 +85,8 @@ NQIDAQAB
 
             setMessages(response);
             //setUserMessages(response.filter(msg => msg.senderid === username));
-            console.log(username)
-            console.log(response)
+            //console.log(username)
+            //console.log(response)
 
         } catch (error) {
             console.error('Error fetching messages: ', error);
@@ -89,6 +94,39 @@ NQIDAQAB
     };
 
     const handleSendMessage = async () => {
+        if ( selectedFile ) {
+            await sendAttachmentMessage()
+        } else {
+            await sendNormalMessage()
+        }
+    }
+
+    const sendAttachmentMessage= async () => {
+        const formData = new FormData();
+        formData.append('senderid', username);
+        formData.append('roomid', groupName);
+        formData.append('content', newMessage);
+
+        if (selectedFile) {
+            formData.append('attachment', selectedFile);
+            console.log("has attachment")
+            console.log(selectedFile)
+        }
+
+        try {
+            await fetch(`${baseUrl}newMessage`, {
+                method: 'POST',
+                body: formData,
+            });
+            //setNewMessage('');
+            //setSelectedFile(null);
+            await fetchMessages();
+        } catch (error) {
+            console.error('Error sending message: ', error);
+        }
+    }
+
+    const sendNormalMessage = async () => {
         try {
             await fetch(`${baseUrl}newMessage`, {
                 method: 'POST',
@@ -113,6 +151,7 @@ NQIDAQAB
                 },
                 body: JSON.stringify({Content: newMessage}),
             });
+            setNewMessage('')
             await fetchMessages();
         } catch (error) {
             console.error('Error deleting message: ', error);
@@ -129,6 +168,7 @@ NQIDAQAB
             console.error('Error deleting message: ', error);
         }
     };
+
 
     return (
         <>
@@ -161,6 +201,7 @@ NQIDAQAB
                         onChange={(e) => setNewMessage(e.target.value)}
                         placeholder="Type your message"
                     />
+                    <input type="file" onChange={handleFileChange}/>
                     <button onClick={handleSendMessage}>Send</button>
                 </div>
             </div>
