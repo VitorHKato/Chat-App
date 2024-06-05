@@ -62,12 +62,8 @@ NQIDAQAB
     useEffect(() => {
         //generateKeys();
         //fetchServerPublicKey();
-        //setInterval(fetchMessages, 2000);
+        setInterval(fetchMessages, 5000);
     }, [groupName]);
-
-    const isUserMessage = (id) => {
-        //return userMessages.some(userMsg => userMsg.Id === id);
-    }
 
     const fetchMessages = async () => {
         try {
@@ -101,6 +97,7 @@ NQIDAQAB
                 },
                 body: JSON.stringify({senderid: username, roomid: groupName, content: newMessage}),
             });
+            setNewMessage('')
             await fetchMessages();
         } catch (error) {
             console.error('Error sending message: ', error);
