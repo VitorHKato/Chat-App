@@ -1,13 +1,14 @@
 import './App.css';
 import { useState, useEffect } from 'react';
 import Input from "./components/Input";
-import {JSEncrypt} from "jsencrypt";
-import { AES } from 'crypto-js';
-import CryptoJS from 'crypto-js';
+//import {JSEncrypt} from "jsencrypt";
+//import { AES } from 'crypto-js';
+//import CryptoJS from 'crypto-js';
+const forge = require('node-forge');
 
 export default function Group({ data }) {
     const [messages, setMessages] = useState([]);
-    const [userMessages, setUserMessages] = useState([]);
+    //const [userMessages, setUserMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
     const groupName = data.group;
     const username = data.username;
@@ -17,52 +18,55 @@ export default function Group({ data }) {
     const [privateKey, setPrivateKey] = useState('');
     const [serverPublicKey, setServerPublicKey] = useState('');
 
-    const generateKeys = () => {
-        const jsEncrypt = new JSEncrypt({default_key_size: 2048})
-        setPrivateKey(jsEncrypt.getPrivateKey());
+    //const generateKeys = () => {
+    //    const jsEncrypt = new JSEncrypt({default_key_size: 2048})
+    //    setPrivateKey(jsEncrypt.getPrivateKey());
+    //}
+
+    const verifySignature = (content, serverSignature) => {
+        const publicKey = `-----BEGIN RSA PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA13eJJSMdQlTleidy7Nip
+4dZZaXyAYkfShwX/SZb4thLjVCk1WQ9bk7IG+EC9wwiJ/3yCvnkTB98odC2HSsj6
+xwFTNvNxv6ZxtvH4DXd6xTXeq3NQWuJ9huckm7n6Pai9hFQ7WH17XNApHG07xsiO
+iUyxgv/l5JnwL6Qaik9vQQ3ycxGBvn29UWYtDucwukLu+6P1KIu4Dmy0RyTbFRSy
+7NRLbAttT0Naj6SD1ah4hCpR1U9aAAUFe54aCtWv1CxzBu8hkN95yzj90IsS7y8A
+hsAtKvVEZ7MrE1Lr26Wzhsj5Xdr/MpFhthIwSoTdfczAayfHlGL4mLSzaADk9wUW
+NQIDAQAB
+-----END RSA PUBLIC KEY-----`;
+        const publicKeyPem = forge.pki.publicKeyFromPem(publicKey);
+
+        // Decode the Base64 encoded signature
+        const signature = forge.util.decode64(serverSignature);
+
+        // Hash the server response
+        const md = forge.md.sha256.create();
+        md.update(content, 'utf8');
+        const hashedMessage = md.digest().getBytes();
+
+        // Verify the signature
+        const verified = publicKeyPem.verify(hashedMessage, signature);
+        return verified;
     }
 
-    const decryption = (body) => {
-        // var privateKey = '-----BEGIN RSA PUBLIC KEY-----\n' +
-        //     'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAoPd+Df9O7J0gXF5aWDxg\n' +
-        //     'Hvv9baSg7wivjbzstyrjDgYUgvjq8FkZv9NYBVKE7ysYTFvuj6/zY7JlgbJawqsF\n' +
-        //     'Q8yoArubvVswFzkjVe/QAUh/dthw5VWOqLuBX8DevE0izylIBsgDaLm9HvLcNjyE\n' +
-        //     'WqT9qGQfdLDxye2kKDd/x65BwybrCIo7AqW09UAWsrS6B3cjdW17GGUhkLKWfAWV\n' +
-        //     'i5WeSi5nX3dJ1UA/jgYCfymABeMF3wSCWl3JLeDRIoMm6XlUpKQgcT7HPD4BG8Qx\n' +
-        //     'YW8uZc/HXTE0Yc41VUrjhB6UYy9EJeUgCEB8LgW0sxbup0gvycciXO4JKXvqBeBi\n' +
-        //     'QwIDAQAB\n' +
-        //     '-----END RSA PUBLIC KEY-----';
-        const bytes = AES.decrypt(body, serverPublicKey);
-        return bytes.toString();
-    }
-
-    const signBody = (body) => {
-        const encrypt = new JSEncrypt();
-        encrypt.setPrivateKey(privateKey);
-        encrypt.sign(body, CryptoJS['sha256'], (signature) => {
-            // Handle the signature here
-            console.log("Signature:", signature);
-        });
-    }
-
-    const fetchServerPublicKey = async () => {
-        try {
-            const res = await fetch(`${baseUrl}key/`);
-            const serverKey = await res.text();
-            setServerPublicKey(serverKey);
-        } catch (error) {
-            console.error('Error fetching server public key: ', error);
-        }
-    };
+    //
+    //const fetchServerPublicKey = async () => {
+    //    try {
+    //        const res = await fetch(`${baseUrl}key`);
+    //        const serverKey = await res.text();
+    //        setServerPublicKey(serverKey);
+    //    } catch (error) {
+    //        console.error('Error fetching server public key: ', error);
+    //    }
+    //};
 
     useEffect(() => {
-        generateKeys();
-        fetchServerPublicKey();
-        setInterval(fetchMessages, 5000);
+        //generateKeys();
+        //fetchServerPublicKey();
+        //setInterval(fetchMessages, 2000);
     }, [groupName]);
 
     const isUserMessage = (id) => {
-        return userMessages.some(userMsg => userMsg.Id === id);
+        //return userMessages.some(userMsg => userMsg.Id === id);
     }
 
     const fetchMessages = async () => {
@@ -70,11 +74,18 @@ export default function Group({ data }) {
             const res = await fetch(`${baseUrl}messages/${groupName}`);
             const response = await res.json();
 
-            response.map(msg => decryption(msg.Content))
-            response.map(msg => signBody(msg.Content))
+            let lengthBefore = response.length
+            response.filter(msg => verifySignature(msg.content, msg.signature))
+            if (response.length != lengthBefore) {
+                console.warning("Signature doesn't match")
+            } else {
+                //console.log("Signature ok")
+            }
 
             setMessages(response);
-            setUserMessages(response.filter(msg => msg.SenderId === username));
+            //setUserMessages(response.filter(msg => msg.senderid === username));
+            console.log(username)
+            console.log(response)
 
         } catch (error) {
             console.error('Error fetching messages: ', error);
@@ -128,16 +139,18 @@ export default function Group({ data }) {
                 <h1>{groupName}</h1>
                 <div className="messages-container">
                     {messages && messages.map((msg) => (
-                        <div className={`message-box ${isUserMessage(msg.Id) ? 'userMessage' : ''}`}
+                        //<p>Sender ID: {msg.senderid}</p>
+
+                        <div className={`message-box ${msg.senderid === username ? 'userMessage' : ''}`}
                              key={msg.id}
                          >
                             <div className="message-content">
-                                <p><strong>{msg.SenderId}</strong>: {msg.Content}</p>
+                                <p><strong>{msg.senderid}</strong>: {msg.content}</p>
                             </div>
-                        {isUserMessage(msg.Id) && (
+                        {msg.senderid === username && (
                         <div className="message-buttons">
-                            <button onClick={() => handleEditMessage(msg.Id)}>Edit</button>
-                            <button onClick={() => handleDeleteMessage(msg.Id)}>Delete</button>
+                            <button onClick={() => handleEditMessage(msg.id)}>Edit</button>
+                            <button onClick={() => handleDeleteMessage(msg.id)}>Delete</button>
                         </div>
                         )}
                         </div>
