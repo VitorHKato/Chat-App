@@ -1,14 +1,10 @@
 import './App.css';
 import { useState, useEffect } from 'react';
 import Input from "./components/Input";
-//import {JSEncrypt} from "jsencrypt";
-//import { AES } from 'crypto-js';
-//import CryptoJS from 'crypto-js';
 const forge = require('node-forge');
 
 export default function Group({ data }) {
     const [messages, setMessages] = useState([]);
-    //const [userMessages, setUserMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
     const groupName = data.group;
     const username = data.username;
@@ -22,11 +18,6 @@ export default function Group({ data }) {
     const handleFileChange = (event) => {
         setSelectedFile(event.target.files[0]);
     };
-
-    //const generateKeys = () => {
-    //    const jsEncrypt = new JSEncrypt({default_key_size: 2048})
-    //    setPrivateKey(jsEncrypt.getPrivateKey());
-    //}
 
     const verifySignature = (content, serverSignature) => {
         const publicKey = `-----BEGIN RSA PUBLIC KEY-----
@@ -118,8 +109,8 @@ NQIDAQAB
                 method: 'POST',
                 body: formData,
             });
-            //setNewMessage('');
-            //setSelectedFile(null);
+            setNewMessage('');
+            setSelectedFile(null);
             await fetchMessages();
         } catch (error) {
             console.error('Error sending message: ', error);
@@ -182,6 +173,9 @@ NQIDAQAB
                              key={msg.id}
                          >
                             <div className="message-content">
+                                <div className={`${msg.imgid === "" ? 'invisible' : ''}`}>
+                                    <img src={`http://localhost:55667/image/${msg.imgid}`} width="200" height="200"/> 
+                                </div>
                                 <p><strong>{msg.senderid}</strong>: {msg.content}</p>
                             </div>
                         {msg.senderid === username && (
