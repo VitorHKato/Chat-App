@@ -56,9 +56,10 @@ NQIDAQAB
     //};
 
     useEffect(() => {
+        fetchMessages();
         //generateKeys();
         //fetchServerPublicKey();
-        //setInterval(fetchMessages, 5000);
+        setInterval(fetchMessages, 5000);
     }, [groupName]);
 
     const fetchMessages = async () => {
@@ -188,15 +189,24 @@ NQIDAQAB
                     ))}
                 </div>
                 <div className="new-message-container">
-                    <Input
-                        type="text"
-                        value={newMessage}
-                        maxLenght="200"
-                        onChange={(e) => setNewMessage(e.target.value)}
-                        placeholder="Type your message"
-                    />
-                    <input type="file" onChange={handleFileChange}/>
-                    <button onClick={handleSendMessage}>Send</button>
+                    <div id="msgWrapper">
+                        <Input
+                            type="text"
+                            value={newMessage}
+                            maxLenght="200"
+                            onChange={(e) => setNewMessage(e.target.value)}
+                            placeholder="Type your message"
+                        />
+                    </div>
+
+                    <div class="file-upload-wrapper">
+                      <input type="file" id="fileInput" class="file-input" onChange={handleFileChange} />
+                      <label for="fileInput" class="file-label">Upload File</label>
+                    </div>
+
+                    <div>
+                        <button onClick={handleSendMessage}>Send</button>
+                    </div>
                 </div>
             </div>
 
