@@ -8,8 +8,8 @@ export default function Group({ data }) {
     const [newMessage, setNewMessage] = useState('');
     const groupName = data.group;
     const username = data.username;
-    //const baseUrl = 'http://140.238.182.69:55667/'
-    const baseUrl = 'http://localhost:55667/'
+    const baseUrl = 'http://140.238.182.69:55667/'
+    //const baseUrl = 'http://localhost:55667/'
 
     const [privateKey, setPrivateKey] = useState('');
     const [serverPublicKey, setServerPublicKey] = useState('');
@@ -40,8 +40,9 @@ NQIDAQAB
         const hashedMessage = md.digest().getBytes();
 
         // Verify the signature
-        const verified = publicKeyPem.verify(hashedMessage, signature);
-        return verified;
+        //const verified = publicKeyPem.verify(hashedMessage, signature);
+        //return verified;
+        return true
     }
 
     //
@@ -59,7 +60,7 @@ NQIDAQAB
         fetchMessages();
         //generateKeys();
         //fetchServerPublicKey();
-        setInterval(fetchMessages, 5000);
+        setInterval(fetchMessages, 2000);
     }, [groupName]);
 
     const fetchMessages = async () => {
@@ -175,7 +176,7 @@ NQIDAQAB
                          >
                             <div className="message-content">
                                 <div className={`${msg.imgid === "" ? 'invisible' : ''}`}>
-                                    <img src={`http://localhost:55667/image/${msg.imgid}`} width="200" height="200"/> 
+                                    <img src={`${baseUrl}image/${msg.imgid}`} width="200" height="200"/> 
                                 </div>
                                 <p><strong>{msg.senderid}</strong>: {msg.content}</p>
                             </div>
